@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Users Table</title>
+
+    <style>
+        table {
+            width: 70%;
+            border-collapse: collapse;
+            margin: 20px auto;
+            font-family: Arial, sans-serif;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #777;
+            text-align: left;
+        }
+
+        th {
+            background-color: #e6e6e6;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f7f7f7;
+        }
+
+        .actions {
+            white-space: nowrap;
+        }
+
+        .actions form {
+            display: inline;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+
+<body>
+<h2 style="text-align:center;">Users Table</h2>
+<table>
+    <thead>
+    <tr>
+        <th>Id</th>
+        <th>Name</th>
+        <th>LastName</th>
+        <th>E-mail</th>
+        <th>Role</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr th:each="user : ${users}">
+        <td th:text="${user.id}"></td>
+        <td th:text="${user.username}"></td>
+        <td th:text="${user.lastName}"></td>
+        <td th:text="${user.email}"></td>
+        <td>
+            <span th:each="role, iter : ${user.roles}"
+                  th:text="${(iter.index > 0 ? ', ' : '') + role.authority}">
+    </span>
+        </td>
+
+        <td class="actions">
+            <form th:action="@{/admin/user/{id}(id=${user.id})}" method="get">
+                <button type="submit">Открыть профиль</button>
+            </form>
+            <form th:action="@{/admin/delete(id=${user.id})}" method="post">
+                <button type="submit">Delete</button>
+            </form>
+            <button type="button"
+                    th:onclick="'editForm(' + ${user.id} + ')'">
+                Update
+            </button>
+
+        </td>
+    </tr>
+    <tr th:each="user : ${users}" th:id="'editForm-' + ${user.id}" style="display:none;">
+        <td colspan="5" style="background:#f7f7f7; padding:15px;">
+
+            <h3>Редактировать пользователя</h3>
+
+            <form th:action="@{/admin/update}" method="post">
+
+                <input type="hidden" name="id" th:value="${user.id}"/>
+
+                <label>FirstName:</label>
+                <input type="text" name="firstName" th:value="${user.username}" required/>
+                <br><br>
+
+                <label>LastName:</label>
+                <input type="text" name="lastName" th:value="${user.lastName}" required/>
+                <br><br>
+
+                <label>Email:</label>
+                <input type="email" name="email" th:value="${user.email}" required/>
+                <br><br>
+
+                <label>Password:</label>
+                <input type="password" name="password" th:value="${user.password}" required/>
+                <br><br>
+                <label>Roles:</label>
+                <select name="roles" multiple class="form-control">
+                    <option value="" disabled>Выберите роли</option>
+
+                    <option th:each="role : ${roles}"
+                            th:value="${role.id}"
+                            th:text="${role.authority}"
+                            th:selected="${user.roles.contains(role)}">
+                    </option>
+                </select>
+
+                <button type="submit">Сохранить</button>
+                <button type="button"
+                        style="margin-left:10px;"
+                        th:onclick="'editForm(' + ${user.id} + ')'">
+                    Отмена
+                </button>
+            </form>
+
+        </td>
+    </tr>
+    </tbody>
+</table>
+<p>
+<form th:action="@{/}" method="get">
+    <button type="submit">На главную</button>
+</form>
+</p>
+<p>
+<form th:action="@{/logout}" method="post">
+    <button type="submit">Выйти</button>
+</form>
+</p>
+
+<button onclick="toggleForm()">Добавить пользователя</button>
+<div id="addUserForm" style="display:none; margin-top:20px;">
+    <h2>Создать нового пользователя</h2>
+
+    <form th:action="@{/admin/add}" method="post">
+
+        <label>FirstName:</label>
+        <input type="text" name="firstName" placeholder="Введите имя" required/>
+
+        <br><br>
+
+        <label>LastName:</label>
+        <input type="text" name="lastName" placeholder="Введите фамилию" required/>
+
+        <br><br>
+
+        <label>E-mail:</label>
+        <input type="email" name="email" placeholder="Введите email" required/>
+
+        <br><br>
+
+        <label>Password:</label>
+        <input type="password" name="password" placeholder="Введите пароль" required/>
+        <br><br>
+        <label>Roles:</label>
+        <select name="roles" multiple class="form-control">
+            <option value="" disabled>Выберите роли</option>
+
+            <option th:each="role : ${roles}"
+                    th:value="${role.id}"
+                    th:text="${role.authority}"
+            >
+            </option>
+        </select>
+        <button type="submit">Add</button>
+        <button type="button"
+                style="margin-left:10px;"
+                onclick="toggleForm()">
+            Отмена
+        </button>
+    </form>
+</div>
+<script>
+    function toggleForm() {
+        let form = document.getElementById("addUserForm");
+        form.style.display = form.style.display === "none" ? "block" : "none";
+    }
+
+    function editForm(id) {
+        let row = document.getElementById("editForm-" + id);
+        if (row.style.display === "none" || row.style.display === "") {
+            row.style.display = "table-row";
+        } else {
+            row.style.display = "none";
+        }
+    }
+</script>
+</body>
+</html>

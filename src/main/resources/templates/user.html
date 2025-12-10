@@ -1,11 +1,77 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
 <head>
-    <title>Spring Security Example</title>
+    <script>
+        function toggleEdit() {
+            const panel = document.getElementById("editPanel");
+            panel.style.display = panel.style.display === "none" ? "block" : "none";
+        }
+    </script>
 </head>
 <body>
-<h1>User, welcome spring boot security page!</h1>
+<h1 th:text="${msg}">User page</h1>
+<h2>Профиль пользователя</h2>
 
+<p><b>ID:</b> <span th:text="${user.id}"></span></p>
+<p><b>Имя:</b> <span th:text="${user.username}"></span></p>
+<p><b>Фамилия:</b> <span th:text="${user.lastName}"></span></p>
+<p><b>Email:</b> <span th:text="${user.email}"></span></p>
+<h3>Роли:</h3>
+<span th:each="role, iter : ${user.roles}"
+      th:text="${(iter.index > 0 ? ', ' : '') + role.authority}">
+</span>
+<br><br>
+<button type="button" onclick="toggleEdit()">Редактировать профиль</button>
+<div id="editPanel" style="display:none">
 
+    <h3>Редактирование профиля</h3>
+
+    <form th:action="@{/update_user}" method="post">
+        <input type="hidden" name="id" th:value="${user.id}"/>
+
+        <label>Имя:</label>
+        <input type="text" name="firstName" th:value="${user.username}"/>
+
+        <label>Фамилия:</label>
+        <input type="text" name="lastName" th:value="${user.lastName}"/>
+
+        <label>Email:</label>
+        <input type="email" name="email" th:value="${user.email}"/>
+
+        <label>Пароль:</label>
+        <input type="password" name="password" placeholder="Оставьте пустым, если не меняете"/>
+
+        <div sec:authorize="hasRole('ADMIN')">
+            <br>
+            <h4>Изменить роли (только для ADMIN)</h4>
+            <label>Роли:</label>
+            <select name="roles" multiple>
+                <option th:each="r : ${allRoles}"
+                        th:value="${r.id}"
+                        th:text="${r.authority}"
+                        th:selected="${user.roles.contains(r)}">
+                </option>
+            </select>
+        </div>
+
+        <button type="submit">Сохранить</button>
+        <button type="button" onclick="toggleEdit()">Отмена</button>
+    </form>
+</div>
+
+<br>
+
+<p>
+<form th:action="@{/}" method="get">
+    <button type="submit">На главную</button>
+</form>
+</p>
+<p>
+<form th:action="@{/logout}" method="post">
+    <button type="submit">Выйти</button>
+</form>
+</p>
 </body>
 </html>
