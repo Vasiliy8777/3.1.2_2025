@@ -7,11 +7,9 @@ import java.util.List;
 public interface AdminService {
     List<User> findAll();
 
-    User findById(Long id);
+    void updateUser(User user, List<Long> roleIds, String password);
 
-    User updateUser(long id, String firstname, String lastName, String email, String password, List<Long> role);
+    void saveUser(User user, List<Long> role, String password);
 
-    User saveUser(String firstname, String lastName, String email, String password, List<Long> role);
-
-    void deleteById(Long id);
+    void deleteUserById(Long id);
 }

@@ -13,11 +13,6 @@
     <button type="submit">Страница USER</button>
 </form>
 </p>
-<p>
-<form sec:authorize="isAnonymous()" th:action="@{/create}" method="get">
-    <button type="submit">Зарегистрироваться</button>
-</form>
-</p>
 
 <p>
 <form th:action="@{/admin}" method="get">

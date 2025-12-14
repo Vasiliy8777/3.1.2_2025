@@ -17,64 +17,44 @@ import java.util.Set;
 public class AdminServiceImp implements AdminService {
 
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final SharedService sharedService;
+    private final RoleRepository roleRepository;
 
-    public AdminServiceImp(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
+    public AdminServiceImp(UserRepository userRepository, PasswordEncoder passwordEncoder,
+                           SharedService sharedService, RoleRepository roleRepository) {
         this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
+        this.sharedService = sharedService;
+        this.roleRepository = roleRepository;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<User> findAll() {
         return userRepository.findAll();
     }
 
     @Override
-    public User findById(Long id) {
-        return null;
-    }
-
-    public User findUserById(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found: " + id));
+    public void updateUser(User user, List<Long> role, String password) {
+        userRepository.save(sharedService.updateUser(user, role, password));
     }
 
     @Override
-    public User updateUser(long id, String firstname, String lastName, String email, String password, List<Long> roleIds) {
-        User user = new User(firstname, lastName, email);
-        user.setId(id);
-        user.setPassword(password);
-        if (!password.isEmpty()) {
-            user.setPassword(passwordEncoder.encode(password));
-        }
-        Set<Role> roles = new HashSet<>();
-        if (roleIds != null) {
-            for (Long roleId : roleIds) {
+    public void saveUser(User user, List<Long> role, String password) {
+        user.setPassword(!password.isEmpty() ? passwordEncoder.encode(password) : user.getPassword());
+        if (role != null && !role.isEmpty()) {
+            Set<Role> roles = new HashSet<>();
+            for (Long roleId : role) {
                 roles.add(roleRepository.findById(roleId).orElseThrow());
             }
+            user.setRoles(roles);
         }
-        user.setRoles(roles);
-        return userRepository.save(user);
+        userRepository.save(user);
     }
 
     @Override
-    public User saveUser(String firstname, String lastName, String email, String password, List<Long> roleIds) {
-        User user = new User(firstname, lastName, email);
-        user.setEnabled(true);
-        user.setPassword(passwordEncoder.encode(password));
-        Set<Role> roles = new HashSet<>();
-        if (roleIds != null) {
-            for (Long roleId : roleIds) {
-                roles.add(roleRepository.findById(roleId).orElseThrow());
-            }
-        }
-        user.setRoles(roles);
-        return userRepository.save(user);
-    }
-
-    public void deleteById(Long id) {
+    public void deleteUserById(Long id) {
         userRepository.deleteById(id);
     }
 

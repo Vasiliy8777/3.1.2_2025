@@ -6,22 +6,26 @@ import org.springframework.web.bind.annotation.*;
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.repository.RoleRepository;
-import ru.kata.spring.boot_security.demo.repository.UserRepository;
-import ru.kata.spring.boot_security.demo.service.UserService;
+import ru.kata.spring.boot_security.demo.service.AdminService;
+import ru.kata.spring.boot_security.demo.service.SharedService;
 
 import java.util.List;
 
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
-    private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
-    private final UserService userService;
 
-    public AdminController(UserRepository userRepository, RoleRepository roleRepository, UserService userService) {
-        this.userRepository = userRepository;
+    private final RoleRepository roleRepository;
+    private final SharedService sharedService;
+    private final AdminService adminService;
+
+    public AdminController(RoleRepository roleRepository,
+                           SharedService sharedService,
+                           AdminService adminService) {
+
         this.roleRepository = roleRepository;
-        this.userService = userService;
+        this.sharedService = sharedService;
+        this.adminService = adminService;
     }
 
     @GetMapping("")
@@ -32,7 +36,7 @@ public class AdminController {
 
     @GetMapping("/user/{id}")
     public String userPage(@PathVariable Long id, Model model) {
-        User us = userService.findById(id);
+        User us = sharedService.findUserById(id);
         model.addAttribute("msg", "Страница для USER / ADMIN");
         model.addAttribute("user", us);
         model.addAttribute("allRoles", roleRepository.findAll());
@@ -41,7 +45,7 @@ public class AdminController {
 
     @GetMapping("/users")
     public String getAllUsers(Model model) {
-        List<User> users = userRepository.findAll();
+        List<User> users = adminService.findAll();
         List<Role> roles = roleRepository.findAll();
         model.addAttribute("users", users);
         model.addAttribute("roles", roles);
@@ -49,29 +53,25 @@ public class AdminController {
     }
 
     @PostMapping("/update")
-    public String updateUser(@RequestParam(value = "id") Long id,
-                             @RequestParam(value = "firstName") String firstname,
-                             @RequestParam(value = "lastName") String lastName,
-                             @RequestParam(value = "email") String email,
-                             @RequestParam(value = "password") String password,
-                             @RequestParam(value = "roles", required = false) List<Long> roleIds) {
-        userService.updateUser(id, firstname, lastName, email, password, roleIds);
+    public String updateUser(@ModelAttribute("user") User user,
+                             @RequestParam(value = "roles", required = false) List<Long> roleIds,
+                             @RequestParam(value = "password", required = false) String password) {
+
+        adminService.updateUser(user, roleIds, password);
         return "redirect:/admin/users";
     }
 
     @PostMapping("/add")
-    public String addUser(@RequestParam(value = "firstName") String firstname,
-                          @RequestParam(value = "lastName") String lastName,
-                          @RequestParam(value = "email") String email,
-                          @RequestParam(value = "password") String password,
-                          @RequestParam(value = "roles", required = false) List<Long> roleIds) {
-        userService.saveUser(firstname, lastName, email, password, roleIds);
+    public String addUser(@ModelAttribute("user") User user,
+                          @RequestParam(value = "roles", required = false) List<Long> roleIds,
+                          @RequestParam(value = "password", required = false) String password) {
+        adminService.saveUser(user, roleIds, password);
         return "redirect:/admin/users";
     }
 
     @PostMapping("/delete")
     public String deleteUser(@RequestParam(value = "id") Long id) {
-        userService.deleteById(id);
+        adminService.deleteUserById(id);
         return "redirect:/admin/users";
     }
 }
