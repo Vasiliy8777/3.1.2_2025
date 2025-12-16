@@ -1,5 +1,6 @@
 package ru.kata.spring.boot_security.demo.service;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,15 +53,25 @@ public class SharedServiceImp implements SharedService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<Role> findAllRoles() {
+        return roleRepository.findAll();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @PreAuthorize("#id==authentication.principal.id or hasRole('ADMIN')")
     public User findUserById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found: " + id));
     }
 
     @Override
+    @PreAuthorize("#user.id==authentication.principal.id or hasRole('ADMIN')")
     public User updateUser(User user, List<Long> role, String password) {
         User us = new User(user.getUserName(), user.getLastName(), user.getEmail());
-        us.setId(user.getId());
+        if (user.getId() != null) {
+            us.setId(user.getId());
+        }
         us.setPassword(!password.isEmpty() ? passwordEncoder.encode(password) : user.getPassword());
         if (role != null && !role.isEmpty()) {
             Set<Role> roles = new HashSet<>();

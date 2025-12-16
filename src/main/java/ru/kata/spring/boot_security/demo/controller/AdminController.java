@@ -29,36 +29,27 @@ public class AdminController {
     }
 
     @GetMapping("")
-    public String adminPage(Model model) {
+    public String showAdminPage(Model model) {
         model.addAttribute("msg", "Страница для USER / ADMIN");
         return "admin";
     }
 
     @GetMapping("/user/{id}")
-    public String userPage(@PathVariable Long id, Model model) {
+    public String showUserPage(@PathVariable Long id, Model model) {
         User us = sharedService.findUserById(id);
         model.addAttribute("msg", "Страница для USER / ADMIN");
         model.addAttribute("user", us);
-        model.addAttribute("allRoles", roleRepository.findAll());
+        model.addAttribute("allRoles", sharedService.findAllRoles());
         return "user";
     }
 
     @GetMapping("/users")
     public String getAllUsers(Model model) {
-        List<User> users = adminService.findAll();
+        List<User> users = adminService.getAll();
         List<Role> roles = roleRepository.findAll();
         model.addAttribute("users", users);
         model.addAttribute("roles", roles);
         return "users";
-    }
-
-    @PostMapping("/update")
-    public String updateUser(@ModelAttribute("user") User user,
-                             @RequestParam(value = "roles", required = false) List<Long> roleIds,
-                             @RequestParam(value = "password", required = false) String password) {
-
-        adminService.updateUser(user, roleIds, password);
-        return "redirect:/admin/users";
     }
 
     @PostMapping("/add")

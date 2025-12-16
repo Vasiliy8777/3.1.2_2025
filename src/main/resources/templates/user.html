@@ -63,11 +63,13 @@
 
 <br>
 
-<p>
-<form th:action="@{/}" method="get">
-    <button type="submit">На главную</button>
-</form>
-</p>
+<div sec:authorize="hasRole('ADMIN')">
+    <p>
+    <form th:action="@{/admin/users}" method="get">
+        <button type="submit">Назад</button>
+    </form>
+    </p>
+</div>
 <p>
 <form th:action="@{/logout}" method="post">
     <button type="submit">Выйти</button>
